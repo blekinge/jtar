@@ -17,6 +17,8 @@
 
 package org.kamranzafar.jtar;
 
+import org.apache.commons.io.output.ProxyOutputStream;
+
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -25,13 +27,13 @@ import java.io.OutputStream;
  * @author Kamran Zafar
  * 
  */
-public class TarOutputStream extends FilterOutputStream {
+public class TarOutputStream extends ProxyOutputStream {
     private long bytesWritten;
     private long currentFileSize;
     private TarEntry currentEntry;
 
     public TarOutputStream(OutputStream out) {
-        super( out );
+        super(out);
         bytesWritten = 0;
         currentFileSize = 0;
     }
@@ -48,38 +50,31 @@ public class TarOutputStream extends FilterOutputStream {
         super.close();
     }
 
-    /**
-     * Writes a byte to the stream and updates byte counters
-     * 
-     * @see java.io.FilterOutputStream#write(int)
-     */
     @Override
-    public void write(int b) throws IOException {
-        super.write( b );
-        bytesWritten += 1;
+    protected void afterWrite(int n) throws IOException {
+        super.afterWrite(n);    //To change body of overridden methods use File | Settings | File Templates.
+        bytesWritten += n;
 
         if (currentEntry != null) {
-            currentFileSize += 1;
+            currentFileSize += n;
         }
+
     }
 
-    /**
-     * Checks if the bytes being written exceed the current entry size.
-     * 
-     * @see java.io.FilterOutputStream#write(byte[], int, int)
-     */
     @Override
-    public void write(byte[] b, int off, int len) throws IOException {
+    protected void beforeWrite(int n) throws IOException {
+        super.beforeWrite(n);    //To change body of overridden methods use File | Settings | File Templates.
         if (currentEntry != null && !currentEntry.isDirectory()) {
-            if (currentEntry.getSize() < currentFileSize + len) {
+            if (currentEntry.getSize() < currentFileSize + n) {
                 throw new IOException( "The current entry[" + currentEntry.getName() + "] size["
-                        + currentEntry.getSize() + "] is smaller than the bytes[" + ( currentFileSize + len )
+                        + currentEntry.getSize() + "] is smaller than the bytes[" + ( currentFileSize + n )
                         + "] being written." );
             }
         }
 
-        super.write( b, off, len );
     }
+
+
 
     /**
      * Writes the next tar entry header on the stream
