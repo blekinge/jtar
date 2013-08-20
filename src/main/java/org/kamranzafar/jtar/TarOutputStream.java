@@ -19,7 +19,6 @@ package org.kamranzafar.jtar;
 
 import org.apache.commons.io.output.ProxyOutputStream;
 
-import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -98,7 +97,7 @@ public class TarOutputStream extends ProxyOutputStream {
      * 
      * @throws IOException
      */
-    protected void closeCurrentEntry() throws IOException {
+    public void closeCurrentEntry() throws IOException {
         if (currentEntry != null) {
             if (currentEntry.getSize() > currentFileSize) {
                 throw new IOException( "The current entry[" + currentEntry.getName() + "] of size["
