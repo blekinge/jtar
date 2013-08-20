@@ -1,18 +1,18 @@
 /**
  * Copyright 2012 Kamran Zafar 
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); 
  * you may not use this file except in compliance with the License. 
  * You may obtain a copy of the License at 
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0 
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software 
  * distributed under the License is distributed on an "AS IS" BASIS, 
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. 
  * See the License for the specific language governing permissions and 
  * limitations under the License. 
- * 
+ *
  */
 
 package org.kamranzafar.jtar;
@@ -24,28 +24,51 @@ import java.io.OutputStream;
 
 /**
  * @author Kamran Zafar
- * 
+ *
  */
 public class TarOutputStream extends ProxyOutputStream {
     private long bytesWritten;
     private long currentFileSize;
     private TarEntry currentEntry;
+    private boolean closeTarFile = true;
 
+
+    /**
+     * Create a new TarOutputStream. Behaves exactly like
+     * TarOutputStream(java.io.OutputStream, true)
+     * @param out the outputstream to write the tar entries to
+     *
+     *            @see #TarOutputStream(java.io.OutputStream, boolean)
+     */
     public TarOutputStream(OutputStream out) {
         super(out);
         bytesWritten = 0;
         currentFileSize = 0;
     }
 
+
+    /**
+     * Create a new TarOutputStream
+     * @param out the outputstream to write the tar entries to
+     * @param closeTar if true, will write a tar file EOF block when this stream is closed
+     */
+    public TarOutputStream(OutputStream out, boolean closeTar) {
+        this(out);
+        this.closeTarFile = closeTar;
+    }
+
+
     /**
      * Appends the EOF record and closes the stream
-     * 
+     *
      * @see java.io.FilterOutputStream#close()
      */
     @Override
     public void close() throws IOException {
         closeCurrentEntry();
-        write( new byte[TarConstants.EOF_BLOCK] );
+        if (closeTarFile){
+            write( new byte[TarConstants.EOF_BLOCK] );
+        }
         super.close();
     }
 
@@ -77,7 +100,7 @@ public class TarOutputStream extends ProxyOutputStream {
 
     /**
      * Writes the next tar entry header on the stream
-     * 
+     *
      * @param entry
      * @throws IOException
      */
@@ -94,7 +117,7 @@ public class TarOutputStream extends ProxyOutputStream {
 
     /**
      * Closes the current tar entry
-     * 
+     *
      * @throws IOException
      */
     public void closeCurrentEntry() throws IOException {
@@ -113,7 +136,7 @@ public class TarOutputStream extends ProxyOutputStream {
 
     /**
      * Pads the last content block
-     * 
+     *
      * @throws IOException
      */
     protected void pad() throws IOException {
